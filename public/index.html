@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8" />
+    <title>MasterHub — Практична 1</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 480px;
+            margin: 60px auto;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+            text-align: left;
+        }
+        li {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+<h1>MasterHub</h1>
+<p>Маркетплейс верифікованих майстрів</p>
+
+<button id="loadBtn">Load items</button>
+
+<ul id="itemsList"></ul>
+
+<script>
+    document.getElementById("loadBtn").addEventListener("click", async () => {
+        const res = await fetch("/items");
+        const items = await res.json();
+
+        const list = document.getElementById("itemsList");
+        list.innerHTML = "";
+
+        items.forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = `#${item.id} — ${item.name}`;
+            list.appendChild(li);
+        });
+    });
+</script>
+</body>
+</html>
