@@ -37,8 +37,12 @@ function ordersRouter(ordersService) {
     });
 
     router.get("/orders", (req, res) => {
-        const orders = ordersService.list();
-        res.status(200).json(orders.map(toResponse));
+        try {
+            const orders = ordersService.list();
+            res.status(200).json(orders.map(toResponse));
+        } catch (err) {
+            handleError(err, res);
+        }
     });
 
     router.get("/orders/:id", (req, res) => {
