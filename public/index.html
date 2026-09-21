@@ -6,112 +6,213 @@
     <style>
         body {
             font-family: system-ui, sans-serif;
-            max-width: 640px;
-            margin: 60px auto;
-            text-align: center;
+            max-width: 960px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #222;
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 4px;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-            text-align: left;
-        }
-        li {
-            padding: 8px 12px;
+        h1 { text-align: center; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-top: 0; margin-bottom: 24px; }
+        section {
             border: 1px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 6px;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            background: #fafafa;
+        }
+        h2 { margin-top: 0; font-size: 16px; }
+        input, button {
+            padding: 8px 12px;
             font-size: 14px;
+            margin: 4px 4px 4px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        input { width: 100%; box-sizing: border-box; font-family: monospace; }
+        button {
+            cursor: pointer;
+            background: #fff;
+            transition: background 0.15s;
+        }
+        button:hover { background: #eee; }
+        pre {
+            background: #2b2b2b;
+            color: #f0f0f0;
+            padding: 12px;
+            border-radius: 6px;
+            overflow: auto;
+            font-size: 13px;
+            max-height: 280px;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
         .status {
+            font-weight: bold;
             display: inline-block;
-            padding: 2px 8px;
+            padding: 4px 10px;
             border-radius: 4px;
-            background: #eef;
-            font-size: 12px;
-            margin-left: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
-        .error {
-            color: #b00;
-            margin-top: 12px;
+        .ok { background: #d4edda; color: #155724; }
+        .err { background: #f8d7da; color: #721c24; }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 8px;
+            font-size: 13px;
         }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px 10px;
+            text-align: left;
+        }
+        th { background: #f0f0f0; }
+        .row { display: flex; gap: 8px; align-items: center; }
+        .row input { flex: 1; }
+        code { background: #eef; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
     </style>
 </head>
 <body>
+
 <h1>MasterHub</h1>
-<p>Маркетплейс верифікованих майстрів</p>
+<p class="subtitle">Маркетплейс верифікованих майстрів — CRUD Demo для <code>/orders</code></p>
 
-<button id="loadBtn">Load orders</button>
-<button id="createBtn">Create test order</button>
+<section>
+    <h2>1. CREATE — POST /orders</h2>
+    <input id="createBody" value='{"clientId":"c-1","masterId":"m-1","serviceId":"s-1","scheduledAt":"2026-09-25T10:00:00Z"}' />
+    <button onclick="doCreate()">Send POST</button>
+    <div id="createOut"></div>
+</section>
 
-<p id="error" class="error"></p>
-<ul id="ordersList"></ul>
+<section>
+    <h2>2. READ — GET /orders (список)</h2>
+    <button onclick="doList()">Load orders</button>
+    <div id="listOut"></div>
+</section>
+
+<section>
+    <h2>3. READ — GET /orders/{id}</h2>
+    <div class="row">
+        <input id="readId" placeholder="id замовлення" />
+        <button onclick="doRead()">Send GET (one)</button>
+    </div>
+    <div id="readOut"></div>
+</section>
+
+<section>
+    <h2>4. UPDATE — PUT /orders/{id}</h2>
+    <div class="row">
+        <input id="updateId" placeholder="id замовлення" />
+    </div>
+    <input id="updateBody" value='{"status":"confirmed"}' />
+    <button onclick="doUpdate()">Send PUT</button>
+    <div id="updateOut"></div>
+</section>
+
+<section>
+    <h2>5. DELETE — DELETE /orders/{id}</h2>
+    <div class="row">
+        <input id="deleteId" placeholder="id замовлення" />
+        <button onclick="doDelete()">Send DELETE</button>
+    </div>
+    <div id="deleteOut"></div>
+</section>
+
+<section>
+    <h2>6. Обробка помилок</h2>
+    <button onclick="doBadCreate()">POST без clientId (400)</button>
+    <button onclick="doBadRead()">GET неіснуючого (404)</button>
+    <div id="errorOut"></div>
+</section>
 
 <script>
-    const list = document.getElementById("ordersList");
-    const errorEl = document.getElementById("error");
-
-    async function loadOrders() {
-        errorEl.textContent = "";
+    async function show(outId, res) {
+        const text = await res.text();
+        const el = document.getElementById(outId);
+        const cls = res.ok ? "ok" : "err";
+        let body;
         try {
-            const res = await fetch("/orders");
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            }
-            const orders = await res.json();
+            body = JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+            body = text || "(порожня відповідь)";
+        }
+        el.innerHTML = `<div class="status ${cls}">Status: ${res.status}</div><pre>${body}</pre>`;
+        return text;
+    }
 
-            list.innerHTML = "";
-            orders.forEach((o) => {
-                const li = document.createElement("li");
-                li.innerHTML = `
-                    #${o.id} — client: <b>${o.clientId}</b>,
-                    master: <b>${o.masterId}</b>,
-                    service: <b>${o.serviceId}</b>,
-                    at: ${o.scheduledAt}
-                    <span class="status">${o.status}</span>
-                `;
-                list.appendChild(li);
-            });
-
-            if (orders.length === 0) {
-                list.innerHTML = "<li>Замовлень поки немає</li>";
-            }
-        } catch (e) {
-            errorEl.textContent = "Помилка завантаження: " + e.message;
+    async function doCreate() {
+        const res = await fetch("/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: document.getElementById("createBody").value
+        });
+        const text = await show("createOut", res);
+        if (res.ok) {
+            const created = JSON.parse(text);
+            document.getElementById("readId").value = created.id;
+            document.getElementById("updateId").value = created.id;
+            document.getElementById("deleteId").value = created.id;
         }
     }
 
-    async function createOrder() {
-        errorEl.textContent = "";
-        try {
-            const res = await fetch("/orders", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    clientId: "c-1",
-                    masterId: "m-1",
-                    serviceId: "s-1",
-                    scheduledAt: new Date(Date.now() + 86400000).toISOString()
-                })
-            });
-            if (!res.ok) {
-                const body = await res.json().catch(() => ({}));
-                throw new Error(`HTTP ${res.status}: ${body.error || res.statusText}`);
+    async function doList() {
+        const res = await fetch("/orders");
+        const text = await show("listOut", res);
+        if (res.ok) {
+            const list = JSON.parse(text);
+            if (list.length === 0) {
+                document.getElementById("listOut").innerHTML += "<p>Замовлень поки немає.</p>";
+                return;
             }
-            await loadOrders();
-        } catch (e) {
-            errorEl.textContent = "Помилка створення: " + e.message;
+            let html = "<table><tr><th>id</th><th>clientId</th><th>masterId</th><th>serviceId</th><th>status</th></tr>";
+            for (const o of list) {
+                html += `<tr><td>${o.id}</td><td>${o.clientId}</td><td>${o.masterId}</td><td>${o.serviceId}</td><td>${o.status}</td></tr>`;
+            }
+            html += "</table>";
+            document.getElementById("listOut").innerHTML += html;
         }
     }
 
-    document.getElementById("loadBtn").addEventListener("click", loadOrders);
-    document.getElementById("createBtn").addEventListener("click", createOrder);
+    async function doRead() {
+        const id = document.getElementById("readId").value.trim();
+        if (!id) return alert("Введіть id");
+        const res = await fetch(`/orders/${id}`);
+        await show("readOut", res);
+    }
+
+    async function doUpdate() {
+        const id = document.getElementById("updateId").value.trim();
+        if (!id) return alert("Введіть id");
+        const res = await fetch(`/orders/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: document.getElementById("updateBody").value
+        });
+        await show("updateOut", res);
+    }
+
+    async function doDelete() {
+        const id = document.getElementById("deleteId").value.trim();
+        if (!id) return alert("Введіть id");
+        const res = await fetch(`/orders/${id}`, { method: "DELETE" });
+        await show("deleteOut", res);
+    }
+
+    async function doBadCreate() {
+        const res = await fetch("/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ masterId: "m-1" })
+        });
+        await show("errorOut", res);
+    }
+
+    async function doBadRead() {
+        const res = await fetch("/orders/nonexistent-id");
+        await show("errorOut", res);
+    }
 </script>
+
 </body>
 </html>
