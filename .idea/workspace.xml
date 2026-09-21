@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ee8dcb16-69f9-4398-aae8-c4c337b367bd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/masterhub.db" beforeDir="false" afterPath="$PROJECT_DIR$/masterhub.db" afterDir="false" />
-    </list>
+    <list default="true" id="ee8dcb16-69f9-4398-aae8-c4c337b367bd" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -76,7 +74,7 @@
       <workItem from="1788936228581" duration="3068000" />
       <workItem from="1788942076087" duration="33000" />
       <workItem from="1789547177421" duration="2517000" />
-      <workItem from="1790007504797" duration="962000" />
+      <workItem from="1790007504797" duration="1376000" />
     </task>
     <servers />
   </component>
