@@ -13,7 +13,7 @@
 
 ```bash
 npm install
-npm run init-db      # опційно, якщо хочеш почати з чистою SQLite-базою
+npm run init-db      # очистити й заново створити таблицю orders      # опційно, якщо хочеш почати з чистою SQLite-базою
 npm start             # http://localhost:8080
 npm test              # прогнати юніт-тести
 ```

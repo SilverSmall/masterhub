@@ -1,31 +1,19 @@
-
-
 const Database = require("better-sqlite3");
 const db = new Database("masterhub.db");
 
 db.exec(`
-  DROP TABLE IF EXISTS items;
-  CREATE TABLE items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+  DROP TABLE IF EXISTS orders;
+  CREATE TABLE orders (
+    id TEXT PRIMARY KEY,
+    clientId TEXT NOT NULL,
+    masterId TEXT NOT NULL,
+    serviceId TEXT NOT NULL,
+    scheduledAt TEXT NOT NULL,
+    status TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL
   );
 `);
 
-const insert = db.prepare("INSERT INTO items (name) VALUES (?)");
-
-const masters = [
-    "Іван Ковальчук — сантехнік",
-    "Олена Гриценко — електрик",
-    "Петро Мельник — ремонт квартир",
-    "Марія Бондаренко — клінінг",
-    "Андрій Шевченко — монтаж меблів",
-];
-
-const insertMany = db.transaction((rows) => {
-    for (const name of rows) insert.run(name);
-});
-
-insertMany(masters);
-
-console.log(`Готово: додано ${masters.length} записів у таблицю items (masterhub.db)`);
+console.log("Готово: створено порожню таблицю orders у masterhub.db");
 db.close();
