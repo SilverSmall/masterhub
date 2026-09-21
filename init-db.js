@@ -1,6 +1,4 @@
-// init-db.js
-// Створює локальну SQLite базу masterhub.db з таблицею items
-// і додає кілька тестових майстрів.
+
 
 const Database = require("better-sqlite3");
 const db = new Database("masterhub.db");

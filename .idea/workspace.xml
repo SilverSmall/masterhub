@@ -5,24 +5,40 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ee8dcb16-69f9-4398-aae8-c4c337b367bd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/init-db.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/orders.routes.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/adr/1-architecture-style.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/adr/2-layered-architecture.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/adr/3-api-style-and-error-model.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/api/openapi.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/repository/InMemoryOrdersRepository.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/repository/SqliteOrdersRepository.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/service/errors.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/service/orders.service.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/orders.service.test.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/init-db.js" beforeDir="false" afterPath="$PROJECT_DIR$/init-db.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/masterhub.db" beforeDir="false" afterPath="$PROJECT_DIR$/masterhub.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="DatabaseLocalColorSettings">
+    <colors>
+      <entry key="960705c0-8ed4-406c-9707-a6d870e784c3" value="" />
+    </colors>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4,
-  "fromUser": false
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3J3j1ye4NUfjVjFTlDYn1IJNUZs" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -35,17 +51,27 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "main",
     "javascript.preferred.runtime.type.id": "node",
     "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.jshint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.jshint": "",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\weblab\masterhub-practical1\docs\api" />
+      <recent name="D:\weblab\masterhub-practical1\docs" />
+      <recent name="D:\weblab\masterhub-practical1\adr" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -60,7 +86,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1788896441014</updated>
-      <workItem from="1788896441015" duration="632000" />
+      <workItem from="1788896441015" duration="1091000" />
+      <workItem from="1788897593405" duration="56000" />
+      <workItem from="1788936228581" duration="3068000" />
+      <workItem from="1788942076087" duration="33000" />
+      <workItem from="1789547177421" duration="2517000" />
+      <workItem from="1790007504797" duration="652000" />
     </task>
     <servers />
   </component>

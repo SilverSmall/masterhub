@@ -1,46 +1,45 @@
-MasterHub — Практична 1: базовий клієнт – бекенд – БД
+# Практична 4 — MasterHub: контракт API + CRUD (Booking/Order)
 
-Мінімальна робоча система: клієнт → бекенд → БД, на основі теми проєкту MasterHub (маркетплейс верифікованих майстрів).
+## Що зроблено
+- **ADR 0001** — обрано модульний моноліт (`docs/adr/0001-architecture-style.md`).
+- **ADR 0002** — шарова архітектура `api/ → service/ → domain/` + `repository/` (`docs/adr/0002-layered-architecture.md`).
+- **ADR 0003** — стиль REST і єдиний формат помилки (`docs/adr/0003-api-style-and-error-model.md`).
+- **Контракт API** — `docs/api/openapi.yaml`, CRUD для `Order` (піддомен Booking з Практичної 3). Перевірено: валідний OpenAPI 3.0.3.
+- **Реалізація CRUD** — `api/orders.routes.js` (HTTP), `service/orders.service.js` (валідація, use-cases), `domain/booking/Order.js` (з Практичної 3), `repository/` (in-memory для тестів + SQLite для реального запуску).
+- **`GET /health`** — повертає `{ "status": "ok" }`.
+- **Юніт-тести** — `tests/orders.service.test.js`, 4 тести (2 успішні, 2 помилкові), запускаються вбудованим тест-раннером Node.
 
-Стек
-Бекенд: Node.js + Express
+## Як запустити
 
-БД: SQLite (better-sqlite3)
-
-Клієнт: звичайний HTML + fetch
-
-Структура
-masterhub-practical1/
-├── server.js       # Express-сервер, endpoint GET /items
-├── init-db.js      # створює masterhub.db і додає тестові рядки
-├── public/
-│   └── index.html  # клієнт з кнопкою "Load items"
-├── package.json
-└── README.md
-Як запустити
-Встановити залежності:
-bash
+```bash
 npm install
-Створити БД і додати тестові дані (виконати один раз, або повторно — таблиця перестворюється):
-bash
-node init-db.js
-Запустити сервер:
-bash
-node server.js
-Відкрити у браузері:
-http://localhost:8080
+npm run init-db      # опційно, якщо хочеш почати з чистою SQLite-базою
+npm start             # http://localhost:8080
+npm test              # прогнати юніт-тести
+```
 
-Натиснути кнопку Load items — на сторінці з'явиться список майстрів, отриманий через GET /items з БД.
+## Перевірка вручну
 
-Endpoint
-GET /items → 200 OK, JSON-масив об'єктів { id, name }.
-Git-флоу для команди
-Лідер команди створює репозиторій (наприклад, masterhub) і пушить цю початкову структуру.
-Кожен учасник команди робить fork репозиторію у свій акаунт.
-Учасники працюють у власних гілках у своєму fork (git checkout -b feature/назва).
-Зміни вносяться через pull request із fork у головний репозиторій лідера.
-Лідер (або команда) робить review і merge.
-Наступні кроки (буде розвиватись у наступних практичних)
-Практична 2: бізнес-документ і архітектурна діаграма для MasterHub.
-Практична 3: DDD — виділення піддоменів (майстри, замовлення, оплата, відгуки).
-і далі за програмою курсу.
+```bash
+curl http://localhost:8080/health
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"clientId":"c-1","masterId":"m-1","serviceId":"s-1","scheduledAt":"2026-09-20T10:00:00Z"}'
+curl http://localhost:8080/orders
+```
+
+## Manual-крок, який лишився зробити тобі особисто
+
+Методичка вимагає реальний скріншот із **онлайн-редактора** editor.swagger.io —
+це не можна автоматизувати (скріншот саме з твого браузера):
+
+1. Відкрий https://editor.swagger.io/
+2. Встав туди вміст `docs/api/openapi.yaml`
+3. Переконайся, що специфікація валідна (немає червоних помилок) і
+   праворуч відрендерились усі endpoint'и (`/health`, `/orders`, `/orders/{id}`)
+4. Зроби скріншот і збережи як `docs/api/swagger_screenshot.png`
+5. У головному `README.md` проєкту додай розділ «API документація» з
+   посиланням на `docs/api/openapi.yaml` і вставленим зображенням.
+
+Специфікацію я вже перевірив програмно (валідна за OpenAPI 3.0.3), тож у
+Swagger Editor помилок з'явитись не повинно — цей крок суто формальний.

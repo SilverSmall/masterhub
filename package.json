@@ -1,16 +1,22 @@
 {
-  "name": "masterhub-practical1",
+  "name": "masterhub-practical4",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tests/",
+    "start": "node server.js",
+    "init-db": "node init-db.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "better-sqlite3": "^11.0.0"
   }
 }

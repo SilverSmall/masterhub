@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: MasterHub API — Orders
+  description: >
+    Контракт API для піддомену Booking (Практична 4).
+    Мінімальний CRUD для сутності Order.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /health:
+    get:
+      summary: Перевірка стану сервісу
+      operationId: getHealth
+      responses:
+        "200":
+          description: Сервіс працює
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /orders:
+    post:
+      summary: Створити замовлення
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Замовлення створено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          description: Помилка валідації
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      summary: Отримати список замовлень
+      operationId: listOrders
+      responses:
+        "200":
+          description: Список замовлень
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderResponse"
+
+  /orders/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Отримати замовлення за id
+      operationId: getOrderById
+      responses:
+        "200":
+          description: Замовлення знайдено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "404":
+          description: Замовлення не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      summary: Оновити замовлення (зміна статусу або дати)
+      operationId: updateOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderRequest"
+      responses:
+        "200":
+          description: Замовлення оновлено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          description: Помилка валідації
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Замовлення не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      summary: Видалити (скасувати) замовлення
+      operationId: deleteOrder
+      responses:
+        "204":
+          description: Замовлення видалено
+        "404":
+          description: Замовлення не знайдено
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    CreateOrderRequest:
+      type: object
+      required: [clientId, masterId, serviceId, scheduledAt]
+      properties:
+        clientId:
+          type: string
+          example: "c-1"
+        masterId:
+          type: string
+          example: "m-1"
+        serviceId:
+          type: string
+          example: "s-1"
+        scheduledAt:
+          type: string
+          format: date-time
+          example: "2026-09-20T10:00:00Z"
+
+    UpdateOrderRequest:
+      type: object
+      description: >
+        Часткове оновлення. status приймає перехід за станами
+        (confirmed, done, cancelled); scheduledAt можна оновити окремо.
+      properties:
+        status:
+          type: string
+          enum: [confirmed, done, cancelled]
+        scheduledAt:
+          type: string
+          format: date-time
+
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "o-1"
+        clientId:
+          type: string
+        masterId:
+          type: string
+        serviceId:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, confirmed, done, cancelled]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "ValidationError"
+        code:
+          type: string
+          nullable: true
+          example: "CLIENT_ID_REQUIRED"
+        details:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
