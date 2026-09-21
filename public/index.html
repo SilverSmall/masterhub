@@ -2,11 +2,11 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8" />
-    <title>MasterHub — Практична 1</title>
+    <title>MasterHub — Практична 4</title>
     <style>
         body {
             font-family: system-ui, sans-serif;
-            max-width: 480px;
+            max-width: 640px;
             margin: 60px auto;
             text-align: center;
         }
@@ -14,6 +14,7 @@
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            margin: 4px;
         }
         ul {
             list-style: none;
@@ -26,6 +27,19 @@
             border: 1px solid #ddd;
             border-radius: 6px;
             margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #eef;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+        .error {
+            color: #b00;
+            margin-top: 12px;
         }
     </style>
 </head>
@@ -33,24 +47,71 @@
 <h1>MasterHub</h1>
 <p>Маркетплейс верифікованих майстрів</p>
 
-<button id="loadBtn">Load items</button>
+<button id="loadBtn">Load orders</button>
+<button id="createBtn">Create test order</button>
 
-<ul id="itemsList"></ul>
+<p id="error" class="error"></p>
+<ul id="ordersList"></ul>
 
 <script>
-    document.getElementById("loadBtn").addEventListener("click", async () => {
-        const res = await fetch("/items");
-        const items = await res.json();
+    const list = document.getElementById("ordersList");
+    const errorEl = document.getElementById("error");
 
-        const list = document.getElementById("itemsList");
-        list.innerHTML = "";
+    async function loadOrders() {
+        errorEl.textContent = "";
+        try {
+            const res = await fetch("/orders");
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            const orders = await res.json();
 
-        items.forEach((item) => {
-            const li = document.createElement("li");
-            li.textContent = `#${item.id} — ${item.name}`;
-            list.appendChild(li);
-        });
-    });
+            list.innerHTML = "";
+            orders.forEach((o) => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    #${o.id} — client: <b>${o.clientId}</b>,
+                    master: <b>${o.masterId}</b>,
+                    service: <b>${o.serviceId}</b>,
+                    at: ${o.scheduledAt}
+                    <span class="status">${o.status}</span>
+                `;
+                list.appendChild(li);
+            });
+
+            if (orders.length === 0) {
+                list.innerHTML = "<li>Замовлень поки немає</li>";
+            }
+        } catch (e) {
+            errorEl.textContent = "Помилка завантаження: " + e.message;
+        }
+    }
+
+    async function createOrder() {
+        errorEl.textContent = "";
+        try {
+            const res = await fetch("/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clientId: "c-1",
+                    masterId: "m-1",
+                    serviceId: "s-1",
+                    scheduledAt: new Date(Date.now() + 86400000).toISOString()
+                })
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(`HTTP ${res.status}: ${body.error || res.statusText}`);
+            }
+            await loadOrders();
+        } catch (e) {
+            errorEl.textContent = "Помилка створення: " + e.message;
+        }
+    }
+
+    document.getElementById("loadBtn").addEventListener("click", loadOrders);
+    document.getElementById("createBtn").addEventListener("click", createOrder);
 </script>
 </body>
 </html>

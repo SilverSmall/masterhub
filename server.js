@@ -37,3 +37,6 @@ app.listen(PORT, () => {
     console.log(`API:            http://localhost:${PORT}/orders`);
     console.log(`Health:         http://localhost:${PORT}/health`);
 });
+app.use((req, res) => {
+    res.status(404).json({ error: "Not found", path: req.path });
+});
