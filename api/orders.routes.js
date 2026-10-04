@@ -4,6 +4,7 @@ const { ValidationError, NotFoundError, DependencyUnavailableError } = require("
 
 function ordersRouter(ordersService) {
     const router = express.Router();
+    // Практична 5: ідемпотентність POST і єдиний формат помилок.
     // Зберігаємо успішні POST-відповіді, щоб повтори мережевого запиту не створювали дублікати.
     const idempotencyStore = new Map();
 

@@ -8,6 +8,7 @@ async function requestWithRetry(request, {
     baseDelayMs = 100,
 } = {}) {
     let lastError;
+    // Практична 5: timeout, AbortController і backoff для залежностей.
     for (let attempt = 0; attempt <= retries; attempt += 1) {
         // Перериваємо кожну спробу окремо; експоненційна затримка не перевантажує повільну залежність.
         const controller = new AbortController();

@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 
 function requestId(req, res, next) {
+    // Практична 5: X-Request-Id для кореляції запитів.
     // Пов'язуємо кожну відповідь з ідентифікатором клієнта або згенерованим сервером.
     const supplied = req.get("X-Request-Id");
     req.requestId = supplied && supplied.length <= 128 ? supplied : crypto.randomUUID();
@@ -9,6 +10,7 @@ function requestId(req, res, next) {
 }
 
 function rateLimit({ limit = 60, windowMs = 60_000 } = {}) {
+    // Практична 5: rate limit із Retry-After для клієнта.
     const clients = new Map();
     return (req, res, next) => {
         const now = Date.now();

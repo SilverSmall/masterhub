@@ -20,6 +20,7 @@ class DependencyUnavailableError extends Error {
     constructor(message = "A required dependency is unavailable", details = null) {
         super(message);
         this.name = "DependencyUnavailableError";
+        // Практична 5: degraded mode повертає клієнту HTTP 503.
         // API перетворює цю помилку на видиму клієнту відповідь 503 у degraded mode.
         this.code = "DEPENDENCY_UNAVAILABLE";
         this.details = details;
