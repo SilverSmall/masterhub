@@ -20,6 +20,7 @@ class DependencyUnavailableError extends Error {
     constructor(message = "A required dependency is unavailable", details = null) {
         super(message);
         this.name = "DependencyUnavailableError";
+        // The API maps this error to a client-visible degraded-mode 503 response.
         this.code = "DEPENDENCY_UNAVAILABLE";
         this.details = details;
     }

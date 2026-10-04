@@ -22,6 +22,7 @@ class OrdersService {
         try {
             id = this.repo.nextId();
         } catch (err) {
+            // Storage failures become an explicit degraded-mode error instead of a generic 500.
             throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
         }
         const order = new Order(id, data.clientId, data.masterId, data.serviceId, data.scheduledAt);

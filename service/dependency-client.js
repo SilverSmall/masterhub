@@ -9,6 +9,7 @@ async function requestWithRetry(request, {
 } = {}) {
     let lastError;
     for (let attempt = 0; attempt <= retries; attempt += 1) {
+        // Abort each attempt independently; exponential backoff avoids hammering a slow dependency.
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
