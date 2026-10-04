@@ -80,6 +80,9 @@
 
 <section>
     <h2>1. CREATE — POST /orders</h2>
+    <p><strong>Практична 5:</strong> ідемпотентність запиту</p>
+    <label for="idempotencyKey">Ключ ідемпотентності (Idempotency-Key)</label>
+    <input id="idempotencyKey" value="demo-order-1" />
     <input id="createBody" value='{"clientId":"c-1","masterId":"m-1","serviceId":"s-1","scheduledAt":"2026-09-25T10:00:00Z"}' />
     <button onclick="doCreate()">Send POST</button>
     <div id="createOut"></div>
@@ -144,7 +147,10 @@
     async function doCreate() {
         const res = await fetch("/orders", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Idempotency-Key": document.getElementById("idempotencyKey").value.trim()
+            },
             body: document.getElementById("createBody").value
         });
         const text = await show("createOut", res);
