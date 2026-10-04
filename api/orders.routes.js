@@ -4,7 +4,7 @@ const { ValidationError, NotFoundError, DependencyUnavailableError } = require("
 
 function ordersRouter(ordersService) {
     const router = express.Router();
-    // Cache successful POST responses so network retries cannot create duplicate orders.
+    // Зберігаємо успішні POST-відповіді, щоб повтори мережевого запиту не створювали дублікати.
     const idempotencyStore = new Map();
 
     function toResponse(order) {
@@ -22,7 +22,7 @@ function ordersRouter(ordersService) {
 
     function handleError(err, req, res) {
         const requestId = req.requestId;
-        // Keep validation, missing resources, dependency failures, and unknown errors consistent.
+        // Уніфікуємо відповіді для помилок валідації, відсутніх ресурсів, залежностей і невідомих збоїв.
         if (err instanceof ValidationError) {
             return res.status(400).json({ error: err.name, code: err.code, details: err.details, requestId });
         }
@@ -50,7 +50,7 @@ function ordersRouter(ordersService) {
         const cached = idempotencyStore.get(key);
         if (cached) {
             if (cached.fingerprint !== fingerprint) {
-                // Reusing a key for a different payload is ambiguous and must not replay the wrong order.
+                // Повторне використання ключа для іншого тіла неоднозначне й не має відтворювати чуже замовлення.
                 return res.status(409).json({
                     error: "ConflictError",
                     code: "IDEMPOTENCY_KEY_REUSED",
@@ -58,7 +58,7 @@ function ordersRouter(ordersService) {
                     requestId: req.requestId,
                 });
             }
-            // Replay the original status, body, and request id for a true idempotent retry.
+            // Для справжнього ідемпотентного повтору відтворюємо початкові статус, тіло та ідентифікатор запиту.
             res.set("X-Request-Id", cached.body.requestId);
             return res.status(cached.status).json(cached.body);
         }

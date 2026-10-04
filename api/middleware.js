@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 
 function requestId(req, res, next) {
-    // Correlate every response with the caller's id or a server-generated id.
+    // Пов'язуємо кожну відповідь з ідентифікатором клієнта або згенерованим сервером.
     const supplied = req.get("X-Request-Id");
     req.requestId = supplied && supplied.length <= 128 ? supplied : crypto.randomUUID();
     res.set("X-Request-Id", req.requestId);
@@ -20,7 +20,7 @@ function rateLimit({ limit = 60, windowMs = 60_000 } = {}) {
         }
         current.count += 1;
         if (current.count > limit) {
-            // Tell clients exactly when they may retry instead of dropping requests silently.
+            // Повідомляємо клієнту точний час повторної спроби замість мовчазного відхилення.
             const retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
             res.set("Retry-After", String(retryAfter));
             return res.status(429).json({
