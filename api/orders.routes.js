@@ -1,8 +1,10 @@
 const express = require("express");
-const { ValidationError, NotFoundError } = require("../service/errors");
+const crypto = require("node:crypto");
+const { ValidationError, NotFoundError, DependencyUnavailableError } = require("../service/errors");
 
 function ordersRouter(ordersService) {
     const router = express.Router();
+    const idempotencyStore = new Map();
 
     function toResponse(order) {
         return {
@@ -17,22 +19,52 @@ function ordersRouter(ordersService) {
         };
     }
 
-    function handleError(err, res) {
+    function handleError(err, req, res) {
+        const requestId = req.requestId;
         if (err instanceof ValidationError) {
-            return res.status(400).json({ error: err.name, code: err.code, details: err.details });
+            return res.status(400).json({ error: err.name, code: err.code, details: err.details, requestId });
         }
         if (err instanceof NotFoundError) {
-            return res.status(404).json({ error: err.name, code: err.code, details: null });
+            return res.status(404).json({ error: err.name, code: err.code, details: null, requestId });
         }
-        return res.status(500).json({ error: "InternalError", code: null, details: null });
+        if (err instanceof DependencyUnavailableError) {
+            return res.status(503).json({ error: err.name, code: err.code, details: err.details, requestId });
+        }
+        console.error("Unhandled orders error:", err);
+        return res.status(500).json({ error: "InternalError", code: "INTERNAL_ERROR", details: null, requestId });
     }
 
     router.post("/orders", (req, res) => {
+        const key = req.get("Idempotency-Key");
+        if (!key) {
+            return res.status(400).json({
+                error: "ValidationError",
+                code: "IDEMPOTENCY_KEY_REQUIRED",
+                details: [{ field: "Idempotency-Key", message: "Idempotency-Key header is required" }],
+                requestId: req.requestId,
+            });
+        }
+        const fingerprint = crypto.createHash("sha256").update(JSON.stringify(req.body || {})).digest("hex");
+        const cached = idempotencyStore.get(key);
+        if (cached) {
+            if (cached.fingerprint !== fingerprint) {
+                return res.status(409).json({
+                    error: "ConflictError",
+                    code: "IDEMPOTENCY_KEY_REUSED",
+                    details: "The key was already used with a different request body",
+                    requestId: req.requestId,
+                });
+            }
+            res.set("X-Request-Id", cached.body.requestId);
+            return res.status(cached.status).json(cached.body);
+        }
         try {
             const order = ordersService.create(req.body || {});
-            res.status(201).json(toResponse(order));
+            const body = { ...toResponse(order), requestId: req.requestId };
+            idempotencyStore.set(key, { fingerprint, status: 201, body });
+            res.status(201).json(body);
         } catch (err) {
-            handleError(err, res);
+            handleError(err, req, res);
         }
     });
 
@@ -41,7 +73,7 @@ function ordersRouter(ordersService) {
             const orders = ordersService.list();
             res.status(200).json(orders.map(toResponse));
         } catch (err) {
-            handleError(err, res);
+            handleError(err, req, res);
         }
     });
 
@@ -50,7 +82,7 @@ function ordersRouter(ordersService) {
             const order = ordersService.getById(req.params.id);
             res.status(200).json(toResponse(order));
         } catch (err) {
-            handleError(err, res);
+            handleError(err, req, res);
         }
     });
 
@@ -59,7 +91,7 @@ function ordersRouter(ordersService) {
             const order = ordersService.update(req.params.id, req.body || {});
             res.status(200).json(toResponse(order));
         } catch (err) {
-            handleError(err, res);
+            handleError(err, req, res);
         }
     });
 
@@ -68,7 +100,7 @@ function ordersRouter(ordersService) {
             ordersService.remove(req.params.id);
             res.status(204).send();
         } catch (err) {
-            handleError(err, res);
+            handleError(err, req, res);
         }
     });
 

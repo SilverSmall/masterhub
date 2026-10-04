@@ -1,6 +1,6 @@
 
 const Order = require("../domain/booking/Order");
-const { ValidationError, NotFoundError } = require("./errors");
+const { ValidationError, NotFoundError, DependencyUnavailableError } = require("./errors");
 
 class OrdersService {
     constructor(ordersRepository) {
@@ -18,27 +18,50 @@ class OrdersService {
             throw new ValidationError("ORDER_INVALID", details);
         }
 
-        const id = this.repo.nextId();
+        let id;
+        try {
+            id = this.repo.nextId();
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
         const order = new Order(id, data.clientId, data.masterId, data.serviceId, data.scheduledAt);
         const now = new Date().toISOString();
         order.createdAt = now;
         order.updatedAt = now;
 
-        return this.repo.save(order);
+        try {
+            return this.repo.save(order);
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
     }
 
     list() {
-        return this.repo.findAll();
+        try {
+            return this.repo.findAll();
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
     }
 
     getById(id) {
-        const order = this.repo.findById(id);
+        let order;
+        try {
+            order = this.repo.findById(id);
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
         if (!order) throw new NotFoundError("ORDER_NOT_FOUND");
         return order;
     }
 
     update(id, data) {
-        const order = this.repo.findById(id);
+        let order;
+        try {
+            order = this.repo.findById(id);
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
         if (!order) throw new NotFoundError("ORDER_NOT_FOUND");
 
         if (data.scheduledAt) {
@@ -65,13 +88,26 @@ class OrdersService {
         }
 
         order.updatedAt = new Date().toISOString();
-        return this.repo.save(order);
+        try {
+            return this.repo.save(order);
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
     }
 
     remove(id) {
-        const order = this.repo.findById(id);
+        let order;
+        try {
+            order = this.repo.findById(id);
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
         if (!order) throw new NotFoundError("ORDER_NOT_FOUND");
-        this.repo.delete(id);
+        try {
+            this.repo.delete(id);
+        } catch (err) {
+            throw new DependencyUnavailableError("Orders storage is unavailable", { cause: err.message });
+        }
     }
 }
 

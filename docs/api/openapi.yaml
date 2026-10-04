@@ -36,6 +36,12 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateOrderRequest"
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
       responses:
         "201":
           description: Замовлення створено
@@ -45,6 +51,22 @@ paths:
                 $ref: "#/components/schemas/OrderResponse"
         "400":
           description: Помилка валідації
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Перевищено ліміт запитів
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Залежність тимчасово недоступна
           content:
             application/json:
               schema:
@@ -190,6 +212,7 @@ components:
 
     ErrorResponse:
       type: object
+      required: [error, requestId]
       properties:
         error:
           type: string
@@ -199,12 +222,18 @@ components:
           nullable: true
           example: "CLIENT_ID_REQUIRED"
         details:
-          type: array
           nullable: true
-          items:
-            type: object
-            properties:
-              field:
-                type: string
-              message:
-                type: string
+          oneOf:
+            - type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+            - type: object
+            - type: string
+        requestId:
+          type: string
+          description: Ідентифікатор запиту з заголовка X-Request-Id

@@ -1,0 +1,35 @@
+const crypto = require("node:crypto");
+
+function requestId(req, res, next) {
+    const supplied = req.get("X-Request-Id");
+    req.requestId = supplied && supplied.length <= 128 ? supplied : crypto.randomUUID();
+    res.set("X-Request-Id", req.requestId);
+    next();
+}
+
+function rateLimit({ limit = 60, windowMs = 60_000 } = {}) {
+    const clients = new Map();
+    return (req, res, next) => {
+        const now = Date.now();
+        const key = req.ip || req.socket.remoteAddress || "unknown";
+        const current = clients.get(key);
+        if (!current || now >= current.resetAt) {
+            clients.set(key, { count: 1, resetAt: now + windowMs });
+            return next();
+        }
+        current.count += 1;
+        if (current.count > limit) {
+            const retryAfter = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
+            res.set("Retry-After", String(retryAfter));
+            return res.status(429).json({
+                error: "RateLimitError",
+                code: "RATE_LIMIT_EXCEEDED",
+                details: { retryAfter },
+                requestId: req.requestId,
+            });
+        }
+        next();
+    };
+}
+
+module.exports = { requestId, rateLimit };

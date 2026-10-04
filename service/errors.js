@@ -16,4 +16,13 @@ class NotFoundError extends Error {
     }
 }
 
-module.exports = { ValidationError, NotFoundError };
+class DependencyUnavailableError extends Error {
+    constructor(message = "A required dependency is unavailable", details = null) {
+        super(message);
+        this.name = "DependencyUnavailableError";
+        this.code = "DEPENDENCY_UNAVAILABLE";
+        this.details = details;
+    }
+}
+
+module.exports = { ValidationError, NotFoundError, DependencyUnavailableError };
