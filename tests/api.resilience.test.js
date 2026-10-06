@@ -17,7 +17,11 @@ function request(method, path, body, headers = {}) {
                 res.on("data", (chunk) => { data += chunk; });
                 res.on("end", () => {
                     server.close();
-                    resolve({ status: res.statusCode, headers: res.headers, body: JSON.parse(data) });
+                    resolve({
+                        status: res.statusCode,
+                        headers: res.headers,
+                        body: data ? JSON.parse(data) : null,
+                    });
                 });
             });
             req.on("error", (err) => { server.close(); reject(err); });
@@ -50,6 +54,28 @@ test("POST requires Idempotency-Key and replays the same result", async () => {
     assert.equal(first.status, 201);
     assert.equal(first.body.requestId, first.headers["x-request-id"]);
     assert.deepEqual(replay.body, first.body);
+});
+
+test("DELETE invalidates the cached idempotency response for the deleted order", async () => {
+    const data = {
+        clientId: "delete-client",
+        masterId: "delete-master",
+        serviceId: "delete-service",
+        scheduledAt: "2026-09-21T10:00:00Z",
+    };
+    const headers = { "Idempotency-Key": "delete-recreate-key" };
+    const first = await request("POST", "/orders", data, headers);
+    assert.equal(first.status, 201);
+
+    const deleted = await request("DELETE", `/orders/${first.body.id}`);
+    assert.equal(deleted.status, 204);
+
+    const recreated = await request("POST", "/orders", data, headers);
+    assert.equal(recreated.status, 201);
+    assert.notEqual(recreated.body.id, first.body.id);
+
+    const listed = await request("GET", "/orders");
+    assert.ok(listed.body.some((order) => order.id === recreated.body.id));
 });
 
 test("dependency helper aborts slow requests and retries", async () => {

@@ -4,7 +4,7 @@ const { ValidationError, NotFoundError, DependencyUnavailableError } = require("
 
 function ordersRouter(ordersService) {
     const router = express.Router();
-    // Практична 5: ідемпотентність POST і єдиний формат помилок.
+    // Практична 5: ідемпотентність POST, її очищення після DELETE та єдиний формат помилок.
     // Зберігаємо успішні POST-відповіді, щоб повтори мережевого запиту не створювали дублікати.
     const idempotencyStore = new Map();
 
@@ -103,6 +103,10 @@ function ordersRouter(ordersService) {
     router.delete("/orders/:id", (req, res) => {
         try {
             ordersService.remove(req.params.id);
+            // Видалений order більше не має блокувати повторне створення з тим самим ключем.
+            for (const [key, cached] of idempotencyStore.entries()) {
+                if (cached.body.id === req.params.id) idempotencyStore.delete(key);
+            }
             res.status(204).send();
         } catch (err) {
             handleError(err, req, res);
