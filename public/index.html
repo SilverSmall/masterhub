@@ -56,6 +56,14 @@
         }
         .ok { background: #d4edda; color: #155724; }
         .err { background: #f8d7da; color: #721c24; }
+        .degraded {
+            display: none;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            background: #fff3cd;
+            color: #856404;
+        }
         table {
             border-collapse: collapse;
             width: 100%;
@@ -77,6 +85,7 @@
 
 <h1>MasterHub</h1>
 <p class="subtitle">Маркетплейс верифікованих майстрів — CRUD Demo для <code>/orders</code></p>
+<div id="degradedBanner" class="degraded" role="status"></div>
 
 <section>
     <h2>1. CREATE — POST /orders</h2>
@@ -129,7 +138,41 @@
     <div id="errorOut"></div>
 </section>
 
+<script src="/api-client.js"></script>
 <script>
+    const MAX_CONSECUTIVE_FAILURES = 3;
+    let consecutiveFailures = 0;
+    let degradedTimer;
+
+    function updateDegradedState(success) {
+        consecutiveFailures = success ? 0 : consecutiveFailures + 1;
+        const banner = document.getElementById("degradedBanner");
+        if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            banner.textContent = "Практична 5: сервіс тимчасово недоступний. Повторіть спробу через кілька секунд.";
+            banner.style.display = "block";
+            document.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+            clearTimeout(degradedTimer);
+            degradedTimer = setTimeout(() => {
+                consecutiveFailures = 0;
+                banner.style.display = "none";
+                document.querySelectorAll("button").forEach((button) => { button.disabled = false; });
+            }, 5000);
+        } else if (success) {
+            banner.style.display = "none";
+        }
+    }
+
+    async function apiFetch(url, options = {}) {
+        try {
+            const response = await MasterHubApi.fetchWithRetry(url, options);
+            updateDegradedState(response.ok);
+            return response;
+        } catch (error) {
+            updateDegradedState(false);
+            throw error;
+        }
+    }
+
     async function show(outId, res) {
         const text = await res.text();
         const el = document.getElementById(outId);
@@ -145,7 +188,7 @@
     }
 
     async function doCreate() {
-        const res = await fetch("/orders", {
+        const res = await apiFetch("/orders", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -163,7 +206,7 @@
     }
 
     async function doList() {
-        const res = await fetch("/orders");
+        const res = await apiFetch("/orders");
         const text = await show("listOut", res);
         if (res.ok) {
             const list = JSON.parse(text);
@@ -183,14 +226,14 @@
     async function doRead() {
         const id = document.getElementById("readId").value.trim();
         if (!id) return alert("Введіть id");
-        const res = await fetch(`/orders/${id}`);
+        const res = await apiFetch(`/orders/${id}`);
         await show("readOut", res);
     }
 
     async function doUpdate() {
         const id = document.getElementById("updateId").value.trim();
         if (!id) return alert("Введіть id");
-        const res = await fetch(`/orders/${id}`, {
+        const res = await apiFetch(`/orders/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: document.getElementById("updateBody").value
@@ -201,12 +244,12 @@
     async function doDelete() {
         const id = document.getElementById("deleteId").value.trim();
         if (!id) return alert("Введіть id");
-        const res = await fetch(`/orders/${id}`, { method: "DELETE" });
+        const res = await apiFetch(`/orders/${id}`, { method: "DELETE" });
         await show("deleteOut", res);
     }
 
     async function doBadCreate() {
-        const res = await fetch("/orders", {
+        const res = await apiFetch("/orders", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ masterId: "m-1" })
@@ -215,7 +258,7 @@
     }
 
     async function doBadRead() {
-        const res = await fetch("/orders/nonexistent-id");
+        const res = await apiFetch("/orders/nonexistent-id");
         await show("errorOut", res);
     }
 </script>

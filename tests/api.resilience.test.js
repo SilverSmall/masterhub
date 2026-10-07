@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const http = require("node:http");
 const app = require("../server");
-const { requestWithRetry } = require("../service/dependency-client");
+const { requestWithRetry, retryAfterMs } = require("../service/dependency-client");
 const { rateLimit } = require("../api/middleware");
 
 function request(method, path, body, headers = {}) {
@@ -90,6 +90,22 @@ test("dependency helper aborts slow requests and retries", async () => {
         /aborted/
     );
     assert.equal(attempts, 3);
+});
+
+test("dependency helper retries 429 using Retry-After", async () => {
+    let attempts = 0;
+    const response = (status, retryAfter) => ({
+        status,
+        headers: { get: () => retryAfter },
+    });
+    const result = await requestWithRetry(async () => {
+        attempts += 1;
+        return attempts === 1 ? response(429, "0") : response(200);
+    }, { retries: 1, baseDelayMs: 1, jitterMs: 0 });
+
+    assert.equal(attempts, 2);
+    assert.equal(result.status, 200);
+    assert.equal(retryAfterMs(response(429, "2")), 2000);
 });
 
 test("rate limiter returns 429 and Retry-After", () => {
